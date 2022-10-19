@@ -30,9 +30,6 @@ hello_end:     ; prorgam end
   byte 0x00    ; zero terminating character
 
 exit:          ; clean ups before exit
-  dbg
-  in
-  cls
   ldi 0x00     ; load 2 to A register
   tab          ; transfer to from A to B register
   ldi 0x00     ; load 0 to A register

@@ -176,7 +176,8 @@ const uint8_t ROM[ROM_SIZE] PROGMEM = {
   
   // hello
   //0x01, 0x00, 0x03, 0x02, 0x04, 0x12, 0x0b, 0x00, 0x0c, 0x04, 0x20, 0x1f, 0xff, 0x0f, 0x09, 0x08, 0x04, 0x03, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00, 0x17, 0x01, 0x00, 0x03, 0x01, 0x00, 0x1e, 0x00
-  0x01, 0x00, 0x03, 0x02, 0x04, 0x12, 0x0b, 0x00, 0x0c, 0x04, 0x20, 0x1f, 0xff, 0x0f, 0x09, 0x08, 0x04, 0x03, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00, 0x0d, 0x0e, 0x17, 0x01, 0x00, 0x03, 0x01, 0x00, 0x1e, 0x00
+  0x01, 0x00, 0x03, 0x02, 0x04, 0x12, 0x0b, 0x00, 0x0c, 0x04, 0x20, 0x1f, 0xff, 0x0f, 0x09, 0x08, 0x04, 0x03, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00, 0x01, 0x00, 0x03, 0x01, 0x00, 0x1e, 0x00
+
 
   
   // mario walk
@@ -228,12 +229,12 @@ uint8_t read_byte(uint16_t addr) {
   program_counter++;
   
   
-  if (addr != program_counter) {
+  /*if (addr != program_counter) {
     Serial.print(addr, HEX);
     Serial.print(": ");
     Serial.print(value, HEX);
     Serial.print("\n");
-  } //getch();
+  }*/ //getch();
   
   
   return value;
@@ -241,7 +242,7 @@ uint8_t read_byte(uint16_t addr) {
 
 
 // read word from RAM
-uint16_t read_word() {
+uint16_t read_word() { 
   uint8_t MSB = read_byte(program_counter);
   uint8_t LSB = read_byte(program_counter);
   uint16_t value = MSB;
@@ -348,9 +349,16 @@ void reset_cpu() {
 
 // execute instruction
 void execute() {
-  while (true) {
+  while (true) { //Serial.print(program_counter, HEX);
     // read next opcode
-    uint8_t opcode = read_byte(program_counter);    
+    uint8_t opcode = read_byte(program_counter);
+    
+    
+      
+      /*Serial.print(": 0x");
+      Serial.print(opcode, HEX);
+      Serial.print("\n");
+      getch();*/
     
     // execute instruction
     switch (opcode) {
@@ -359,7 +367,16 @@ void execute() {
       
       
         
-      case LDA: zero_flag = ((register_A = read_byte((read_word() + register_B))) == 0); break;
+      case LDA:
+        //Serial.print("Word before:\n"); Serial.print(program_counter, HEX);
+        
+        zero_flag = ((register_A = read_byte((read_word() + register_B))) == 0);
+        program_counter--;
+        //Serial.print("Word after:\n"); Serial.print(program_counter, HEX);
+        
+        break;
+      
+      
       case TAB: zero_flag = ((register_B = register_A) == 0); break;
       case ADD: zero_flag = ((register_A += read_byte(program_counter)) == 0); break;
       case SUB: zero_flag = ((register_A -= read_byte(program_counter)) == 0); break;
