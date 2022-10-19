@@ -11,7 +11,8 @@ Programs can be entered via machine codes from the keypad or loaded via serial p
 
 
 # Memory
- - 1500 bytes of RAM
+ - 1024 bytes of RAM (0x0000 - 0x0400)
+ - 2048 bytes of ROM (0x0400 - 0x0C00)
  - stack (stack pointer points to the last byte in RAM and growth downwards)
  - first 750 bytes are used to store program instructions and variables
  - last 750 bytes are shared between program variables and stack
@@ -120,7 +121,7 @@ Programs can be entered via machine codes from the keypad or loaded via serial p
       byte 0x00    ; execution terminates here
 
 # Assemble program
-    python3 assembler.py hello.asm
+    python3 assembler.py hello.asm [0x200]
 
 # Circuit example
 ![LCD connect](https://raw.githubusercontent.com/maksimKorzh/cmk-computer/main/LCD_connect.png?token=AIFH42ONBYZL4KWSQ5HZGL3BPQDE4)

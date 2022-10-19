@@ -11,6 +11,7 @@
 \****************************************************************/
 
 // libraries
+#include <EEPROM.h>
 #include <avr/pgmspace.h> 
 #include <LiquidCrystal.h>
 #include <Keypad.h>
@@ -44,7 +45,7 @@
 \****************************************************************/
 
 // uncomment to rotate keypad CCW, enable LCD shield buttons
-#define CMK_HARDWARE
+//#define CMK_HARDWARE
 
 // messages
 const char MESSAGE_ZERO[] PROGMEM = {"0"};
@@ -161,11 +162,17 @@ Keypad keypad = Keypad(makeKeymap(keymap), row_pins, col_pins, num_rows, num_col
 #define SAVE  0xfffe
 #define RUN   0xffff
 
-// define RAM size
-#define MEMORY_SIZE 1500
+// define memory size
+#define RAM_SIZE 1024
+#define ROM_SIZE 2048
 
 // RAM array
-uint8_t  memory[MEMORY_SIZE];
+uint8_t RAM[RAM_SIZE];
+
+// ROM array
+const uint8_t ROM[ROM_SIZE] PROGMEM = {
+  0xDE, 0xAD, 0xBE, 0xEF
+};
 
 // CPU registers
 uint8_t  register_A = 0;
@@ -185,18 +192,19 @@ bool zero_flag = 0;
 
 // clear RAM
 void reset_memory() {
-  for (uint16_t i = 0; i < MEMORY_SIZE; i++)
-    memory[i] = 0;
+  for (uint16_t i = 0; i < RAM_SIZE; i++)
+    RAM[i] = 0;
 }
 
-// read byte from memory
+// read byte from RAM
 uint8_t read_byte() {
-  uint8_t value = memory[program_counter];
+  //if (program_counter >= 0x0400) return 0xAA;
+  uint8_t value = RAM[program_counter];
   program_counter++;
   return value;
 }
 
-// read word from memory
+// read word from RAM
 uint16_t read_word() {
   uint8_t MSB = read_byte();
   uint8_t LSB = read_byte();
@@ -252,7 +260,10 @@ void print_word(uint16_t  word) {
 void memory_dump(uint16_t addr) {
   lcd.clear();
   print_word(addr); lcd.print(':');
-  for (uint16_t i = addr; i < addr + 4; i++) print_byte(memory[i]);
+  for (uint16_t i = addr; i < addr + 4; i++) {
+    if (i >= 0x0000 && i <= 0x03FF) print_byte(RAM[i]);
+    if (i >= 0x0400 && i <= 0x0BFF) print_byte(pgm_read_byte_near(ROM + (i - 0x0400)));
+  }
   lcd.setCursor(0, 1);
 }
 
@@ -309,11 +320,11 @@ void execute() {
     switch (opcode) {
       case NOP: program_counter = 0; return;
       case LDI: zero_flag = ((register_A = read_byte()) == 0); break;
-      case LDA: zero_flag = ((register_A = memory[(read_word() + register_B)]) == 0); break;
+      case LDA: zero_flag = ((register_A = RAM[(read_word() + register_B)]) == 0); break;
       case TAB: zero_flag = ((register_B = register_A) == 0); break;
       case ADD: zero_flag = ((register_A += read_byte()) == 0); break;
       case SUB: zero_flag = ((register_A -= read_byte()) == 0); break;
-      case STA: memory[read_word() + register_B] = register_A; break;
+      case STA: RAM[read_word() + register_B] = register_A; break;
       case LPC: program_counter = read_word(); break;
       case INC: zero_flag = (++register_B == 0); break;
       case DCR: zero_flag = (--register_B == 0); break;
@@ -338,29 +349,29 @@ void execute() {
       case POS: lcd.setCursor(register_A, register_B); break;
       case DLY: delay(read_byte()); break;
       case RND: zero_flag = (register_A = random(read_byte())); break;
-      case NUM: lcd.print(memory[read_word()]); break;
-      case INM: zero_flag = (++memory[read_word()] == 0); break;
-      case DCM: zero_flag = (--memory[read_word()] == 0); break;
+      case NUM: lcd.print(RAM[read_word()]); break;
+      case INM: zero_flag = (++RAM[read_word()] == 0); break;
+      case DCM: zero_flag = (--RAM[read_word()] == 0); break;
       case PSH:
-        memory[stack_pointer--] = register_A;
-        memory[stack_pointer--] = register_B;
+        RAM[stack_pointer--] = register_A;
+        RAM[stack_pointer--] = register_B;
         break;
       case POP:
-        register_B = memory[++stack_pointer];
-        register_A = memory[++stack_pointer];
+        register_B = RAM[++stack_pointer];
+        register_A = RAM[++stack_pointer];
         break;
       case SBR:
-        memory[stack_pointer--] = (uint8_t)(program_counter & 0x00ff) + 2;
-        memory[stack_pointer--] = (uint8_t)(program_counter >> 4);
+        RAM[stack_pointer--] = (uint8_t)(program_counter & 0x00ff) + 2;
+        RAM[stack_pointer--] = (uint8_t)(program_counter >> 4);
         program_counter = read_word();
         break;
       case RET:
         program_counter = 0;
-        program_counter <<= memory[++stack_pointer];
-        program_counter |= memory[++stack_pointer];
+        program_counter <<= RAM[++stack_pointer];
+        program_counter |= RAM[++stack_pointer];
         break;
       case UDG:
-        lcd.createChar(register_A, memory + register_B);
+        lcd.createChar(register_A, RAM + register_B);
         lcd.begin(16, 2);
         break;
       case SPR: lcd.write(byte(read_byte())); break;
@@ -458,31 +469,31 @@ void command_load() {
   while (Serial.available() == 0);
   lcd.clear();
   print_message_lcd(MESSAGE_LOADING);
-  Serial.readBytes(memory, MEMORY_SIZE);
+  Serial.readBytes(RAM, RAM_SIZE);
   
   // ascii to bytes       
-  for (int i = 0; i < MEMORY_SIZE; i++) {
-    memory[i] = ascii_to_hex(memory[i]);
-    if ((i % 2) == 0) memory[i] <<= 4;
+  for (int i = 0; i < RAM_SIZE; i++) {
+    RAM[i] = ascii_to_hex(RAM[i]);
+    if ((i % 2) == 0) RAM[i] <<= 4;
     else {
-      memory[i - 1] |= memory[i];
-      memory[i] = 0;
+      RAM[i - 1] |= RAM[i];
+      RAM[i] = 0;
     }
   }
   
   // group bytes
-  for (int i = 0; i < MEMORY_SIZE; i++) {
+  for (int i = 0; i < RAM_SIZE; i++) {
     if ((i % 2) == 0) {
       if (i) {
-        memory[i - ((int)(i / 2))] = memory[i];
-        memory[i] = 0;
+        RAM[i - ((int)(i / 2))] = RAM[i];
+        RAM[i] = 0;
       }
     }
   }
 
   // verify transfered bytes
   //Serial.println("Your program bytes loaded:");
-  //for (int i = 0; i < MEMORY_SIZE; i++) print_hex(memory[i]);
+  //for (int i = 0; i < RAM_SIZE; i++) print_hex(RAM[i]);
 
   print_message_lcd(MESSAGE_DONE);
   lcd.setCursor(0, 1);
@@ -496,9 +507,9 @@ void command_save() {
   lcd.clear();
   print_message_lcd(MESSAGE_SAVING);
   
-  for (int i = 0; i < MEMORY_SIZE; i++) {
-    if ( memory[i] < 0x10) print_message_serial(MESSAGE_ZERO);
-    Serial.print(memory[i], HEX);
+  for (int i = 0; i < RAM_SIZE; i++) {
+    if ( RAM[i] < 0x10) print_message_serial(MESSAGE_ZERO);
+    Serial.print(RAM[i], HEX);
   }
   
   print_message_lcd(MESSAGE_DONE_LONG);
@@ -555,7 +566,7 @@ void loop() {
       // enter bytes to memory
       default:
         for (int i = addr; i < addr + 4; i++) {
-          memory[i] = encode_byte();
+          RAM[i] = encode_byte();
           lcd.print(' ');
         }
         
