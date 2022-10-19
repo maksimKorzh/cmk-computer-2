@@ -201,14 +201,7 @@ if (len(program) > 1500):
 print('\nYOUR PROGRAM LABELS:')
 print(json.dumps(labels, indent=2))
 print('\nYOUR PROGRAM BYTES:');
-
-
-
-#for i in range(len(program)):
-#    if program[i] < 0x10: print('0', sep='', end='')
-#    print(hex(program[i]).replace('0x', '').upper() + ' ', end='')
-
-print(' '.join([f'{i:#0{4}x}' for i in  program]).replace('0x', '').replace(' ', '').upper())
+print(', '.join([f'{i:#0{4}x}' for i in  program]))
 
 
 
