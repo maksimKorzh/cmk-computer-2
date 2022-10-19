@@ -11,6 +11,7 @@
 # packages
 import sys
 import json
+import sys
 
 # define opcodes
 opcodes = {
@@ -135,6 +136,9 @@ with open(filename) as input_file:
                         print('"byte" and "word" are reserved keywords and can\'t be the part of a label!');
                         sys.exit(1)
                         
+                    try: byte_count += int(sys.argv[2], 16)
+                    except: print('Origin should be a hexidecimal value, like 0x100')
+                    
                     labels[line.split(';')[0].strip()[:-1]] = f'{byte_count:#0{6}x}'
                     byte_count -= 1
                 
