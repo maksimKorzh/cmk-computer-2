@@ -171,8 +171,7 @@ uint8_t RAM[RAM_SIZE];
 
 // ROM array
 const uint8_t ROM[ROM_SIZE] PROGMEM = {
-  0x1b, 0x01, 0x00, 0x03, 0x01, 0x10, 0x1e, 0x01, 0x21, 0x04, 0x01, 0x0f, 0x18,
-  0x1f, 0xff, 0x1f, 0xff, 0x08, 0x04, 0x09, 0x00
+  0x0D, 0x0E, 0x0D, 0x0E, 0x0D, 0x0E, 0x0D, 0x0E, 0x00
 };
 
 // CPU registers
@@ -380,7 +379,15 @@ void execute() {
         break;
       case SPR: lcd.write(byte(read_byte())); break;
       case DBG:
-        print_message_serial(MESSAGE_REGISTER_A_DEBUG);
+        lcd.setCursor(0, 0);
+        lcd.print("A  B  PC SP ZF");
+        lcd.setCursor(0, 1);
+        print_byte(register_A);
+        print_byte(register_B);
+        print_byte(program_counter);
+        print_byte(stack_pointer);
+        print_byte(zero_flag);
+        /*print_message_serial(MESSAGE_REGISTER_A_DEBUG);
         Serial.println(register_A, HEX);
         print_message_serial(MESSAGE_REGISTER_B_DEBUG);
         Serial.println(register_B, HEX);
@@ -389,7 +396,7 @@ void execute() {
         print_message_serial(MESSAGE_REGISTER_SP_DEBUG);
         Serial.println(stack_pointer, HEX);
         print_message_serial(MESSAGE_REGISTER_ZF_DEBUG);
-        Serial.println(zero_flag, HEX);
+        Serial.println(zero_flag, HEX);*/
         break;
       default:
         lcd.clear();
