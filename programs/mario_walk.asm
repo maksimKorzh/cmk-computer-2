@@ -66,6 +66,11 @@ create_graphics:                   ; create user defined graphics (cprites/chara
   tab                              ; and transfer it to B register to init the data pointer
   ldi 0x00                         ; init index of 0 for the mario_head_left sprite
   udg                              ; create user defined character
+  
+end:
+  lpc end
+  
+  
   ldi mario_head_right             ; load address of mario_head_right to A register
   tab                              ; and transfer it to B register to init the data pointer
   ldi 0x01                         ; init index of 1 for the mario_head_right sprite
@@ -124,7 +129,7 @@ count:                             ; variable holding the value of how far Mario
 
 reset_mario:                       ; place Mario to the left part of the screen
   ldi 0x00                         ; reset A register
-  sta count                        ; reset counter with the value of A register
+  sta 0x0000                        ; reset counter with the value of A register
   cls                              ; clear the LCD display
   lpc mario_walk                   ; continue main Mario walk loop
 
