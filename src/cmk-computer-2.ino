@@ -171,7 +171,8 @@ uint8_t RAM[RAM_SIZE];
 
 // ROM array
 const uint8_t ROM[ROM_SIZE] PROGMEM = {
-  0xDE, 0xAD, 0xBE, 0xEF
+  0x1b, 0x01, 0x00, 0x03, 0x01, 0x10, 0x1e, 0x01, 0x21, 0x04, 0x01, 0x0f, 0x18,
+  0x1f, 0xff, 0x1f, 0xff, 0x08, 0x04, 0x09, 0x00
 };
 
 // CPU registers
@@ -198,8 +199,11 @@ void reset_memory() {
 
 // read byte from RAM
 uint8_t read_byte() {
-  //if (program_counter >= 0x0400) return 0xAA;
-  uint8_t value = RAM[program_counter];
+  uint8_t value;
+  if (program_counter >= 0x0000 && program_counter <= 0x03FF)
+    value = RAM[program_counter];
+  if (program_counter >= 0x0400 && program_counter <= 0x0BFF)
+    value = pgm_read_byte_near(ROM + (program_counter - 0x0400));
   program_counter++;
   return value;
 }
@@ -305,7 +309,7 @@ void print_message_serial(const char *message) {
 void reset_cpu() {
   register_A = 0;
   register_B = 0;
-  program_counter = 0;
+  program_counter = 0x0400; // points to ROM start
   stack_pointer = 0x3ff;
   zero_flag = 0;
 }
@@ -318,7 +322,7 @@ void execute() {
     
     // execute instruction
     switch (opcode) {
-      case NOP: program_counter = 0; return;
+      case NOP: program_counter = 0x0400; return;
       case LDI: zero_flag = ((register_A = read_byte()) == 0); break;
       case LDA: zero_flag = ((register_A = RAM[(read_word() + register_B)]) == 0); break;
       case TAB: zero_flag = ((register_B = register_A) == 0); break;
@@ -434,7 +438,7 @@ uint8_t ascii_to_hex(char ascii) {
 // reset computer
 void init_computer() {
   lcd.clear();
-  print_message_lcd(MESSAGE_CMK);
+  //print_message_lcd(MESSAGE_CMK);
   lcd.setCursor(0, 1);
   reset_cpu();
   reset_memory();
@@ -443,7 +447,7 @@ void init_computer() {
 // run program
 void command_run() {
   lcd.clear();
-  print_message_lcd(MESSAGE_RUN);
+  //print_message_lcd(MESSAGE_RUN);
   lcd.setCursor(3, 2);
   delay(300);
   lcd.clear();
@@ -548,8 +552,10 @@ void setup() {
 }
 
 // arduino loop
-void loop() {  
-  while (true) {
+void loop() {
+  execute();
+  
+  /*while (true) {
     // get user command/address
     uint16_t addr = encode_word();
     lcd.print(':');
@@ -573,7 +579,7 @@ void loop() {
         delay(300);
         memory_dump(addr);
         break;
-    }    
-  }
+    }
+  }*/
 }
  
