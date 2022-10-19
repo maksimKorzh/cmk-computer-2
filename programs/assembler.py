@@ -205,8 +205,8 @@ print(', '.join([f'{i:#0{4}x}' for i in  program]))
 
 print('\nYOUR PROGRAM LENGTH:')
 print(len(program), 'bytes')
-print('\n1. Type "FFFD" on CMK computer to load the program');
-print('2. Open Arduino IDE => Serial Monitor')
-print('3. Copy and paste above bytes to Arduino Serial Monitor ans click "send"');
-print('4. Type "FFFF" on CMK computer to run the program');
+#print('\n1. Type "FFFD" on CMK computer to load the program');
+#print('2. Open Arduino IDE => Serial Monitor')
+#print('3. Copy and paste above bytes to Arduino Serial Monitor ans click "send"');
+#print('4. Type "FFFF" on CMK computer to run the program');
 print('\nEnjoy epic 8-bit computing experience!\n');

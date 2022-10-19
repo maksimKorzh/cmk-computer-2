@@ -171,13 +171,25 @@ uint8_t RAM[RAM_SIZE];
 
 // ROM array
 const uint8_t ROM[ROM_SIZE] PROGMEM = {
-  0x0D, 0x0E, 0x0D, 0x0E, 0x0D, 0x0E, 0x0D, 0x0E, 0x00
+  // scroll
+  //0x1b, 0x01, 0x00, 0x03, 0x01, 0x10, 0x1e, 0x01, 0x21, 0x04, 0x01, 0x0f, 0x18, 0x1f, 0xff, 0x1f, 0xff, 0x08, 0x04, 0x09, 0x00
+  
+  // hello
+  //0x01, 0x00, 0x03, 0x02, 0x04, 0x12, 0x0b, 0x00, 0x0c, 0x04, 0x20, 0x1f, 0xff, 0x0f, 0x09, 0x08, 0x04, 0x03, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00, 0x17, 0x01, 0x00, 0x03, 0x01, 0x00, 0x1e, 0x00
+  0x01, 0x00, 0x03, 0x02, 0x04, 0x12, 0x0b, 0x00, 0x0c, 0x04, 0x20, 0x1f, 0xff, 0x0f, 0x09, 0x08, 0x04, 0x03, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00, 0x0d, 0x0e, 0x17, 0x01, 0x00, 0x03, 0x01, 0x00, 0x1e, 0x00
+
+  
+  // mario walk
+  //0x08, 0x04, 0x33, 0x00, 0x00, 0x01, 0x03, 0x03, 0x05, 0x05, 0x06, 0x00, 0x00, 0x18, 0x1f, 0x08, 0x08, 0x04, 0x0f, 0x0f, 0x1f, 0x1e, 0x18, 0x01, 0x07, 0x07, 0x04, 0x18, 0x10, 0x08, 0x18, 0x08, 0x08, 0x10, 0x18, 0x0f, 0x1f, 0x0e, 0x08, 0x01, 0x08, 0x1f, 0x0c, 0x1c, 0x18, 0x08, 0x0d, 0x07, 0x1f, 0x03, 0x00, 0x01, 0x04, 0x03, 0x03, 0x01, 0x00, 0x1c, 0x01, 0x04, 0x0b, 0x03, 0x01, 0x01, 0x1c, 0x01, 0x04, 0x13, 0x03, 0x01, 0x02, 0x1c, 0x01, 0x04, 0x1b, 0x03, 0x01, 0x03, 0x1c, 0x01, 0x04, 0x23, 0x03, 0x01, 0x04, 0x1c, 0x01, 0x04, 0x2b, 0x03, 0x01, 0x05, 0x1c, 0x01, 0x00, 0x03, 0x02, 0x04, 0x8f, 0x0b, 0x11, 0x0c, 0x04, 0x90, 0x26, 0x04, 0x8f, 0x01, 0x00, 0x03, 0x01, 0x00, 0x1e, 0x1d, 0x00, 0x1d, 0x01, 0x01, 0x01, 0x03, 0x01, 0x00, 0x1e, 0x1d, 0x02, 0x1d, 0x03, 0x1f, 0xff, 0x1f, 0xff, 0x01, 0x01, 0x03, 0x01, 0x00, 0x1e, 0x1d, 0x04, 0x1d, 0x05, 0x1f, 0xff, 0x1f, 0xff, 0x19, 0x08, 0x04, 0x57, 0x00, 0x01, 0x00, 0x06, 0x04, 0x8f, 0x17, 0x08, 0x04, 0x57
+  
+  // ROM
+  //0x01, 0x00, 0x03, 0x02, 0x04, 0x13, 0x0b, 0x00, 0x0c, 0x04, 0x22, 0x1f, 0xff, 0x0f, 0x0e, 0x09, 0x08, 0x04, 0x03, 0x20, 0x41, 0x44, 0x44, 0x52, 0x45, 0x53, 0x53, 0x20, 0x20, 0x44, 0x41, 0x54, 0x41, 0x00, 0x01, 0x01, 0x03, 0x01, 0x00, 0x1e, 0x00
 };
 
 // CPU registers
 uint8_t  register_A = 0;
 uint8_t  register_B = 0;
-uint16_t  program_counter = 0;
+uint16_t  program_counter = 0x0400;
 uint16_t stack_pointer = 0x3ff;
 bool zero_flag = 0;
 
@@ -197,7 +209,7 @@ void reset_memory() {
 }
 
 // read byte from RAM
-uint8_t read_byte() {
+/*uint8_t read_byte() {
   uint8_t value;
   if (program_counter >= 0x0000 && program_counter <= 0x03FF)
     value = RAM[program_counter];
@@ -205,12 +217,33 @@ uint8_t read_byte() {
     value = pgm_read_byte_near(ROM + (program_counter - 0x0400));
   program_counter++;
   return value;
+}*/
+
+uint8_t read_byte(uint16_t addr) {
+  uint8_t value;
+  if (addr >= 0x0000 && addr <= 0x03FF)
+    value = RAM[addr];
+  if (addr >= 0x0400 && addr <= 0x0BFF)
+    value = pgm_read_byte_near(ROM + (addr - 0x0400));
+  program_counter++;
+  
+  
+  if (addr != program_counter) {
+    Serial.print(addr, HEX);
+    Serial.print(": ");
+    Serial.print(value, HEX);
+    Serial.print("\n");
+  } //getch();
+  
+  
+  return value;
 }
+
 
 // read word from RAM
 uint16_t read_word() {
-  uint8_t MSB = read_byte();
-  uint8_t LSB = read_byte();
+  uint8_t MSB = read_byte(program_counter);
+  uint8_t LSB = read_byte(program_counter);
   uint16_t value = MSB;
   value <<= 8;
   value |= LSB;
@@ -317,41 +350,44 @@ void reset_cpu() {
 void execute() {
   while (true) {
     // read next opcode
-    uint8_t opcode = read_byte();    
+    uint8_t opcode = read_byte(program_counter);    
     
     // execute instruction
     switch (opcode) {
       case NOP: program_counter = 0x0400; return;
-      case LDI: zero_flag = ((register_A = read_byte()) == 0); break;
-      case LDA: zero_flag = ((register_A = RAM[(read_word() + register_B)]) == 0); break;
+      case LDI: zero_flag = ((register_A = read_byte(program_counter)) == 0); break;
+      
+      
+        
+      case LDA: zero_flag = ((register_A = read_byte((read_word() + register_B))) == 0); break;
       case TAB: zero_flag = ((register_B = register_A) == 0); break;
-      case ADD: zero_flag = ((register_A += read_byte()) == 0); break;
-      case SUB: zero_flag = ((register_A -= read_byte()) == 0); break;
+      case ADD: zero_flag = ((register_A += read_byte(program_counter)) == 0); break;
+      case SUB: zero_flag = ((register_A -= read_byte(program_counter)) == 0); break;
       case STA: RAM[read_word() + register_B] = register_A; break;
       case LPC: program_counter = read_word(); break;
       case INC: zero_flag = (++register_B == 0); break;
       case DCR: zero_flag = (--register_B == 0); break;
-      case CMP: zero_flag = ((register_A - read_byte()) == 0); break;
+      case CMP: zero_flag = ((register_A - read_byte(program_counter)) == 0); break;
       case JMP: if (zero_flag) program_counter = read_word(); else read_word(); break;
       case RCH: zero_flag = (register_A = keypad.getKey()) == 0; break;
       case IN: while ((register_A = keypad.getKey()) == NO_KEY); break;
       case OUT: lcd.print(char(register_A)); break;
       case SER: Serial.print(char(register_A)); break;
-      case BIT: zero_flag = ((register_A & read_byte()) == 0); break;
-      case AND: zero_flag = ((register_A &= read_byte()) == 0); break;
-      case OR: zero_flag = ((register_A |= read_byte()) == 0); break;
-      case XOR: zero_flag = ((register_A ^= read_byte()) == 0); break;
-      case NOT: zero_flag = ((register_A = ~read_byte()) == 0); break;
-      case SHL: zero_flag = ((register_A <<= read_byte()) == 0); break;
-      case SHR: zero_flag = ((register_A >>= read_byte()) == 0); break;
+      case BIT: zero_flag = ((register_A & read_byte(program_counter)) == 0); break;
+      case AND: zero_flag = ((register_A &= read_byte(program_counter)) == 0); break;
+      case OR: zero_flag = ((register_A |= read_byte(program_counter)) == 0); break;
+      case XOR: zero_flag = ((register_A ^= read_byte(program_counter)) == 0); break;
+      case NOT: zero_flag = ((register_A = ~read_byte(program_counter)) == 0); break;
+      case SHL: zero_flag = ((register_A <<= read_byte(program_counter)) == 0); break;
+      case SHR: zero_flag = ((register_A >>= read_byte(program_counter)) == 0); break;
       case CLS: lcd.clear(); break;
       case SDL: lcd.scrollDisplayLeft(); break;
       case SDR: lcd.scrollDisplayRight(); break;
       case CRS: lcd.blink(); break;
       case NCR: lcd.noBlink(); break;
       case POS: lcd.setCursor(register_A, register_B); break;
-      case DLY: delay(read_byte()); break;
-      case RND: zero_flag = (register_A = random(read_byte())); break;
+      case DLY: delay(read_byte(program_counter)); break;
+      case RND: zero_flag = (register_A = random(read_byte(program_counter))); break;
       case NUM: lcd.print(RAM[read_word()]); break;
       case INM: zero_flag = (++RAM[read_word()] == 0); break;
       case DCM: zero_flag = (--RAM[read_word()] == 0); break;
@@ -377,7 +413,7 @@ void execute() {
         lcd.createChar(register_A, RAM + register_B);
         lcd.begin(16, 2);
         break;
-      case SPR: lcd.write(byte(read_byte())); break;
+      case SPR: lcd.write(byte(read_byte(program_counter))); break;
       case DBG:
         lcd.setCursor(0, 0);
         lcd.print("A  B  PC SP ZF");
@@ -446,7 +482,7 @@ uint8_t ascii_to_hex(char ascii) {
 void init_computer() {
   lcd.clear();
   //print_message_lcd(MESSAGE_CMK);
-  lcd.setCursor(0, 1);
+  lcd.setCursor(0, 0);
   reset_cpu();
   reset_memory();
 }
