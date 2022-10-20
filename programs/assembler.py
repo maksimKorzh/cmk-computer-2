@@ -200,8 +200,12 @@ if (len(program) > 1500):
 
 print('\nYOUR PROGRAM LABELS:')
 print(json.dumps(labels, indent=2))
+
 print('\nYOUR PROGRAM BYTES:');
 print(', '.join([f'{i:#0{4}x}' for i in  program]))
+
+print('\nYOUR PROGRAM BYTES:');
+[print('RAM[' + str(i) + '] = ', f'{program[i]:#0{4}x}', ';') for i in range(len(program))]
 
 print('\nYOUR PROGRAM LENGTH:')
 print(len(program), 'bytes')
