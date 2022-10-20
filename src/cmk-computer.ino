@@ -318,10 +318,7 @@ void reset_cpu() {
 }
 
 // execute instruction
-bool execute() {
-  // user interrupt
-  if (keypad.getKey() == 'F') return 0;
-  
+bool execute() { //Serial.print(program_counter, HEX); Serial.print("\n");
   // read next opcode
   uint8_t opcode = read_byte();    
   
@@ -339,10 +336,13 @@ bool execute() {
     case DCR: zero_flag = (--register_B == 0); break;
     case CMP: zero_flag = ((register_A - read_byte()) == 0); break;
     case JMP: if (zero_flag) program_counter = read_word(); else read_word(); break;
-    case RCH: zero_flag = (register_A = keypad.getKey()) == 0; break;
+    case RCH:
+      zero_flag = (register_A = keypad.getKey()) == 0;
+      if (register_A == 'F') return 0;
+      break;
     case IN: while ((register_A = keypad.getKey()) == NO_KEY); break;
     case OUT: lcd.print(char(register_A)); break;
-    case SER: Serial.print(char(register_A)); break;
+    case SER: Serial.print(register_A); break;//Serial.print(char(register_A)); break;
     case BIT: zero_flag = ((register_A & read_byte()) == 0); break;
     case AND: zero_flag = ((register_A &= read_byte()) == 0); break;
     case OR: zero_flag = ((register_A |= read_byte()) == 0); break;
@@ -1084,7 +1084,7 @@ void loop() {
         if (current_addr < MEMORY_SIZE) {
           program_counter = current_addr;
           command_run(key);
-        }
+        } break;
       case 'C': current_addr = program_counter; break;
       case 'D': print_debug(); break;
       case '4': mode = 0; break;
