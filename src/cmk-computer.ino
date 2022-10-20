@@ -684,10 +684,10 @@ memory[38] =  0x00;
 // arduino loop
 void loop() {
   lcd.setCursor(0, 1);
-  mode ? lcd.print(" ") : lcd.print(">");
+  lcd.print(" ");
   lcd.print("0x");
   print_word(current_addr);
-  mode ? lcd.print(">") : lcd.print(" ");
+  mode ? lcd.print(">") : lcd.print("<");
   if (current_addr < MEMORY_SIZE) {
     lcd.print("0x");
     uint8_t value = memory[current_addr];
@@ -719,8 +719,7 @@ void loop() {
       } else if (current_addr < MEMORY_SIZE) {
         memory[current_addr] <<= 4;
         memory[current_addr] |= ascii_to_hex(key);
-      }
-      break;
+      } break;
   }
 
 
