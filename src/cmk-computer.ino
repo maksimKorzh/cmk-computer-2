@@ -62,7 +62,7 @@ const char MESSAGE_NEW[] PROGMEM = {"NEW  "};
 const char MESSAGE_LOAD[] PROGMEM = {"LOAD "};
 const char MESSAGE_SAVE[] PROGMEM = {"SAVE "};
 const char MESSAGE_CLEAR[] PROGMEM = {"CLEAR"};
-const char MESSAGE_RUN[] PROGMEM = {"RUN  "};
+const char MESSAGE_RUN[] PROGMEM = {" RUNS AT 0x"};
 const char MESSAGE_VIEW[] PROGMEM = {"VIEW: "};
 const char MESSAGE_WAITING[] PROGMEM = {" Waiting for"};
 const char MESSAGE_INCOMING[] PROGMEM = {"incoming data..."};
@@ -213,6 +213,7 @@ uint16_t read_word() {
 
 // encode address
 uint16_t encode_word() {
+  lcd.setCursor(4, 1);
   uint16_t addr = 0;
   for (int i = 12; i >= 0; i -= 4) {  
     char input = getch();
@@ -441,8 +442,9 @@ void init_computer() {
 void command_run() {
   lcd.clear();
   print_message_lcd(MESSAGE_RUN);
+  print_word(program_counter);
   lcd.setCursor(3, 2);
-  delay(300);
+  delay(1000);
   lcd.clear();
   execute();
   current_addr = program_counter;
@@ -594,28 +596,37 @@ void loop() {
   lcd.print("0x");
   print_word(current_addr);
   mode ? lcd.print(">") : lcd.print(" ");
-  lcd.print("0x");
-  print_byte(memory[current_addr]);
-  lcd.print(" ");
+  if (current_addr < MEMORY_SIZE) {
+    lcd.print("0x");
+    print_byte(memory[current_addr]);
+    lcd.print(" ");
   lcd.print("NOP"); // disasm
+  } else lcd.print("---- ---");
   
   char key = getch();
   switch(key) {
     case 'A': // current_addr++
-      current_addr++;
-      if (current_addr == 0x0400) current_addr = 0;
-      break;
+      current_addr++; break;
     case 'B': // current_addr--
-      current_addr--;
-      if (current_addr == 0xFFFF) current_addr = 0x03FF;
-      break;
+      current_addr--; break;
     case 'F': // execute
-      program_counter = current_addr;
-      command_run();
+      if (current_addr < MEMORY_SIZE) {
+        program_counter = current_addr;
+        command_run();
+      }
     case 'C': // ADDR mode
       mode = 0; break;
     case 'D': // DATA mode
       mode = 1; break;
+    default:
+      if (!mode) {
+        current_addr <<= 4;
+        current_addr |= ascii_to_hex(key);
+      } else if (current_addr < MEMORY_SIZE) {
+        memory[current_addr] <<= 4;
+        memory[current_addr] |= ascii_to_hex(key);
+      }
+      break;
   }
 
 
