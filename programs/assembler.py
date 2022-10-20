@@ -11,7 +11,6 @@
 # packages
 import sys
 import json
-import sys
 
 # define opcodes
 opcodes = {
@@ -75,9 +74,6 @@ with open(filename) as input_file:
     src = [l.upper() for l in input_file.read().split('\n')]
     program = []
     byte_count = -1
-    
-    try: byte_count += int(sys.argv[2], 16)
-    except: print('Origin should be a hexidecimal value, like 0x100')
 
     # init labels
     for line in src:
@@ -138,7 +134,7 @@ with open(filename) as input_file:
                     if 'BYTE' in line.split(';')[0].strip()[:-1] or 'WORD' in line.split(';')[0].strip()[:-1]:
                         print('"byte" and "word" are reserved keywords and can\'t be the part of a label!');
                         sys.exit(1)
-                    
+                        
                     labels[line.split(';')[0].strip()[:-1]] = f'{byte_count:#0{6}x}'
                     byte_count -= 1
                 
@@ -198,14 +194,14 @@ if (len(program) > 1500):
     print('Your program exceeds limit by', len(program) - 1500, 'bytes!');
     sys.exit();
 
+print('\nYOUR PROGRAM BYTES:');
+[print('memory[' + str(i) + '] = ', f'{program[i]:#0{4}x}' + ';') for i in range(len(program))]
+
 print('\nYOUR PROGRAM LABELS:')
 print(json.dumps(labels, indent=2))
 
 print('\nYOUR PROGRAM BYTES:');
 print(', '.join([f'{i:#0{4}x}' for i in  program]))
-
-print('\nYOUR PROGRAM BYTES:');
-[print('RAM[' + str(i) + '] = ', f'{program[i]:#0{4}x}', ';') for i in range(len(program))]
 
 print('\nYOUR PROGRAM LENGTH:')
 print(len(program), 'bytes')

@@ -30,4 +30,10 @@ hello_end:     ; prorgam end
   byte 0x00    ; zero terminating character
 
 exit:          ; clean ups before exit
-  lpc exit     ; stuck in infinite loop
+  ldi 0x01     ; load 2 to A register
+  tab          ; transfer to from A to B register
+  ldi 0x00     ; load 0 to A register
+  pos          ; position cursor at A, B (col 0, row 1)
+  byte 0x00    ; execution terminates here
+  
+  
