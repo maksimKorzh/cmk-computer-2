@@ -74,8 +74,8 @@ const char MESSAGE_SAVING[] PROGMEM = {"Saving..."};
 // opcodes
 const char *OPCODES[] = {
   "NOP", "LDI", "LDA", "TAB", "ADD", "SUB", "STA", "RCH",
-  "LPC", "INC", "DCR", "CMP", "JMP", "DBG",  "IN", "OUT",
-  "BIT", "AND",  "OR", "XOR", "NOT", "SHL", "SHR", "CLS",
+  "LPC", "INC", "DCR", "CMP", "JMP", "DBG", "IN ", "OUT",
+  "BIT", "AND", "OR ", "XOR", "NOT", "SHL", "SHR", "CLS",
   "SDL", "SDR", "CRS", "NCR", "UDG", "SPR", "POS", "DLY",
   "RND", "PSH", "POP", "SBR", "RET", "NUM", "INM", "DCM", "SER"
 };
