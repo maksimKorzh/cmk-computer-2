@@ -49,11 +49,14 @@
 // messages
 const char MESSAGE_CAPTIONS[] PROGMEM = {"ADDRESS DATA ASM"};
 const char MESSAGE_ZERO[] PROGMEM = {"0"};
-const char MESSAGE_REGISTER_A_DEBUG[] PROGMEM = {"Register A: 0x"};
+
+/*const char MESSAGE_REGISTER_A_DEBUG[] PROGMEM = {"Register A: 0x"};
 const char MESSAGE_REGISTER_B_DEBUG[] PROGMEM = {"Register B: 0x"};
 const char MESSAGE_REGISTER_PC_DEBUG[] PROGMEM = {"Program Counter: 0x"};
 const char MESSAGE_REGISTER_SP_DEBUG[] PROGMEM = {"Stack pointer: 0x"};
-const char MESSAGE_REGISTER_ZF_DEBUG[] PROGMEM = {"Zero Flag: 0x"};
+const char MESSAGE_REGISTER_ZF_DEBUG[] PROGMEM = {"Zero Flag: 0x"};*/
+
+const char MESSAGE_DEBUG[] PROGMEM = {" A  B  PC SP ZF"};
 const char MESSAGE_UNKNOWN_OPCODE[] PROGMEM = {"Unknown opcode:"};
 const char MESSAGE_QUESTION_MARK[] PROGMEM = {"? "};
 const char MESSAGE_INTRO_1[] PROGMEM = {" 8-bit computer "};
@@ -314,109 +317,20 @@ void reset_cpu() {
 }
 
 // execute instruction
-void execute() {
-  while (true) {
-    // read next opcode
-    uint8_t opcode = read_byte();    
-    
-    // execute instruction
-    switch (opcode) {
-      case NOP: return;
-      case LDI: zero_flag = ((register_A = read_byte()) == 0); break;
-      case LDA: zero_flag = ((register_A = memory[(read_word() + register_B)]) == 0); break;
-      case TAB: zero_flag = ((register_B = register_A) == 0); break;
-      case ADD: zero_flag = ((register_A += read_byte()) == 0); break;
-      case SUB: zero_flag = ((register_A -= read_byte()) == 0); break;
-      case STA: memory[read_word() + register_B] = register_A; break;
-      case LPC: program_counter = read_word(); break;
-      case INC: zero_flag = (++register_B == 0); break;
-      case DCR: zero_flag = (--register_B == 0); break;
-      case CMP: zero_flag = ((register_A - read_byte()) == 0); break;
-      case JMP: if (zero_flag) program_counter = read_word(); else read_word(); break;
-      case RCH: zero_flag = (register_A = keypad.getKey()) == 0; break;
-      case IN: while ((register_A = keypad.getKey()) == NO_KEY); break;
-      case OUT: lcd.print(char(register_A)); break;
-      case SER: Serial.print(char(register_A)); break;
-      case BIT: zero_flag = ((register_A & read_byte()) == 0); break;
-      case AND: zero_flag = ((register_A &= read_byte()) == 0); break;
-      case OR: zero_flag = ((register_A |= read_byte()) == 0); break;
-      case XOR: zero_flag = ((register_A ^= read_byte()) == 0); break;
-      case NOT: zero_flag = ((register_A = ~read_byte()) == 0); break;
-      case SHL: zero_flag = ((register_A <<= read_byte()) == 0); break;
-      case SHR: zero_flag = ((register_A >>= read_byte()) == 0); break;
-      case CLS: lcd.clear(); break;
-      case SDL: lcd.scrollDisplayLeft(); break;
-      case SDR: lcd.scrollDisplayRight(); break;
-      case CRS: lcd.blink(); break;
-      case NCR: lcd.noBlink(); break;
-      case POS: lcd.setCursor(register_A, register_B); break;
-      case DLY: delay(read_byte()); break;
-      case RND: zero_flag = (register_A = random(read_byte())); break;
-      case NUM: lcd.print(memory[read_word()]); break;
-      case INM: zero_flag = (++memory[read_word()] == 0); break;
-      case DCM: zero_flag = (--memory[read_word()] == 0); break;
-      case PSH:
-        memory[stack_pointer--] = register_A;
-        memory[stack_pointer--] = register_B;
-        break;
-      case POP:
-        register_B = memory[++stack_pointer];
-        register_A = memory[++stack_pointer];
-        break;
-      case SBR:
-        memory[stack_pointer--] = (uint8_t)(program_counter & 0x00ff) + 2;
-        memory[stack_pointer--] = (uint8_t)(program_counter >> 4);
-        program_counter = read_word();
-        break;
-      case RET:
-        program_counter = 0;
-        program_counter <<= memory[++stack_pointer];
-        program_counter |= memory[++stack_pointer];
-        break;
-      case UDG:
-        lcd.createChar(register_A, memory + register_B);
-        lcd.begin(16, 2);
-        break;
-      case SPR: lcd.write(byte(read_byte())); break;
-      case DBG:
-        print_message_serial(MESSAGE_REGISTER_A_DEBUG);
-        Serial.println(register_A, HEX);
-        print_message_serial(MESSAGE_REGISTER_B_DEBUG);
-        Serial.println(register_B, HEX);
-        print_message_serial(MESSAGE_REGISTER_PC_DEBUG);
-        Serial.println(program_counter, HEX);
-        print_message_serial(MESSAGE_REGISTER_SP_DEBUG);
-        Serial.println(stack_pointer, HEX);
-        print_message_serial(MESSAGE_REGISTER_ZF_DEBUG);
-        Serial.println(zero_flag, HEX);
-        break;
-      default:
-        lcd.clear();
-        print_message_lcd(MESSAGE_UNKNOWN_OPCODE);
-        lcd.setCursor(0, 1);
-        print_byte(opcode);
-        print_message_lcd(MESSAGE_QUESTION_MARK);
-        return;
-    }
-  }
-}
-
-
-/****************************************************************\
- ================================================================
-
-                            DISASSEMBLER
-
- ================================================================
-\****************************************************************/
-
-void disassemble(uint8_t opcode) {
+bool execute() {
+  // user interrupt
+  if (keypad.getKey() == 'F') return 0;
+  
+  // read next opcode
+  uint8_t opcode = read_byte();    
+  
+  // execute instruction
   switch (opcode) {
-    case NOP: lcd.print("NOP"); break;
-    case LDI: lcd.print("LDI"); break;
-    case LDA: lcd.print("LDA"); break;
-    case TAB: lcd.print("TAB"); break;
-    /*case ADD: zero_flag = ((register_A += read_byte()) == 0); break;
+    case NOP: return 0;
+    case LDI: zero_flag = ((register_A = read_byte()) == 0); break;
+    case LDA: zero_flag = ((register_A = memory[(read_word() + register_B)]) == 0); break;
+    case TAB: zero_flag = ((register_B = register_A) == 0); break;
+    case ADD: zero_flag = ((register_A += read_byte()) == 0); break;
     case SUB: zero_flag = ((register_A -= read_byte()) == 0); break;
     case STA: memory[read_word() + register_B] = register_A; break;
     case LPC: program_counter = read_word(); break;
@@ -470,20 +384,18 @@ void disassemble(uint8_t opcode) {
       break;
     case SPR: lcd.write(byte(read_byte())); break;
     case DBG:
-      print_message_serial(MESSAGE_REGISTER_A_DEBUG);
-      Serial.println(register_A, HEX);
-      print_message_serial(MESSAGE_REGISTER_B_DEBUG);
-      Serial.println(register_B, HEX);
-      print_message_serial(MESSAGE_REGISTER_PC_DEBUG);
-      Serial.println(program_counter, HEX);
-      print_message_serial(MESSAGE_REGISTER_SP_DEBUG);
-      Serial.println(stack_pointer, HEX);
-      print_message_serial(MESSAGE_REGISTER_ZF_DEBUG);
-      Serial.println(zero_flag, HEX);
-      break;*/
-    default: lcd.print("BYT"); break;
-  }
+      print_debug();
+      break;
+    default:
+      lcd.clear();
+      print_message_lcd(MESSAGE_UNKNOWN_OPCODE);
+      lcd.setCursor(0, 1);
+      print_byte(opcode);
+      print_message_lcd(MESSAGE_QUESTION_MARK);
+      return 0;
+  } return 1;
 }
+
 
 /****************************************************************\
  ================================================================
@@ -531,14 +443,15 @@ void init_computer() {
 }
 
 // run program
-void command_run() {
+void command_run(char key) {
   lcd.clear();
   print_message_lcd(MESSAGE_RUN);
   print_word(program_counter);
   lcd.setCursor(3, 2);
   delay(1000);
   lcd.clear();
-  execute();
+  if (key == 'F') while(execute());
+  else execute();
   current_addr = program_counter;
   lcd.clear();
   print_message_lcd(MESSAGE_CAPTIONS);
@@ -627,6 +540,25 @@ void command_new() {
   init_computer();
 }
 
+// print debug
+void print_debug() {
+  lcd.clear();
+  print_message_lcd(MESSAGE_DEBUG);
+  lcd.setCursor(1, 1);
+  print_byte(register_A);
+  lcd.print(" ");
+  print_byte(register_B);
+  lcd.print(" ");
+  print_byte(program_counter);
+  lcd.print(" ");
+  print_byte(stack_pointer);
+  lcd.print(" ");
+  print_byte(zero_flag);
+  getch();
+  lcd.clear();
+  print_message_lcd(MESSAGE_CAPTIONS);
+}
+
 // arduino setup
 void setup() {
   // init serial port for debugging
@@ -699,15 +631,18 @@ void loop() {
   
   char key = getch();
   switch(key) {
-    case 'A': // current_addr++
+    case 'A': // current_addr/data++
       mode ? memory[current_addr]++ : current_addr++; break;
-    case 'B': // current_addr--
+    case 'B': // current_addr/data--
       mode ? memory[current_addr]-- : current_addr--; break;
     case 'F': // execute
+    case 'E': // single step
       if (current_addr < MEMORY_SIZE) {
         program_counter = current_addr;
-        command_run();
+        command_run(key);
       }
+    case '0': current_addr = program_counter; break;
+    case '1': print_debug(); break;
     case 'C': // ADDR mode
       mode = 0; break;
     case 'D': // DATA mode
@@ -721,33 +656,5 @@ void loop() {
         memory[current_addr] |= ascii_to_hex(key);
       } break;
   }
-
-
-  /*while (true) {
-    // get user command/address
-    uint16_t addr = encode_word();
-    lcd.print(':');
-
-    // handle user commands
-    switch (addr) {
-      case CLEAR: command_clear(); break;      // clear LCD
-      case NEW: command_new(); break;          // software reset
-      case VIEW: command_view(); break;        // view memory dump
-      case LOAD: command_load(); break;        // load program via serial port
-      case SAVE: command_save(); break;        // save program via serial port
-      case RUN: command_run(); break;
-      
-      // enter bytes to memory
-      default:
-        for (int i = addr; i < addr + 4; i++) {
-          memory[i] = encode_byte();
-          lcd.print(' ');
-        }
-        
-        delay(300);
-        memory_dump(addr);
-        break;
-    }    
-  }*/
 }
  
