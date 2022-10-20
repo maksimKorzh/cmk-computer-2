@@ -47,7 +47,7 @@
 //#define CMK_HARDWARE
 
 // messages
-const char MESSAGE_CAPTIONS[] PROGMEM = {"ADDR  DATA : ASM"};
+const char MESSAGE_CAPTIONS[] PROGMEM = {"ADDRESS DATA ASM"};
 const char MESSAGE_ZERO[] PROGMEM = {"0"};
 const char MESSAGE_REGISTER_A_DEBUG[] PROGMEM = {"Register A: 0x"};
 const char MESSAGE_REGISTER_B_DEBUG[] PROGMEM = {"Register B: 0x"};
@@ -176,6 +176,9 @@ uint16_t  program_counter = 0;
 uint16_t stack_pointer = 0x3ff;
 bool zero_flag = 0;
 
+// OS variables
+uint16_t current_addr = 0;
+bool mode = 0; // ADDR = 0; DATA = 1
 
 /****************************************************************\
  ================================================================
@@ -239,7 +242,6 @@ uint8_t encode_byte() {
 void print_byte(uint8_t  byte) {
   if (byte<0x10) print_message_lcd(MESSAGE_ZERO);
   lcd.print(byte, HEX);
-  lcd.print(' ');
 }
 
 // prints 16-bit data in hex with leading zeroes
@@ -309,7 +311,7 @@ void execute() {
     
     // execute instruction
     switch (opcode) {
-      case NOP: program_counter = 0; return;
+      case NOP: return;
       case LDI: zero_flag = ((register_A = read_byte()) == 0); break;
       case LDA: zero_flag = ((register_A = memory[(read_word() + register_B)]) == 0); break;
       case TAB: zero_flag = ((register_B = register_A) == 0); break;
@@ -429,6 +431,8 @@ void init_computer() {
   lcd.setCursor(0, 1);
   print_message_lcd(MESSAGE_INTRO_2);
   delay(2000);
+  lcd.clear();
+  print_message_lcd(MESSAGE_CAPTIONS);
   reset_cpu();
   reset_memory();
 }
@@ -441,6 +445,9 @@ void command_run() {
   delay(300);
   lcd.clear();
   execute();
+  current_addr = program_counter;
+  lcd.clear();
+  print_message_lcd(MESSAGE_CAPTIONS);
 }
 
 // view memory dump
@@ -534,7 +541,7 @@ void setup() {
   // init LCD
   lcd.begin(16, 2);
   lcd.noAutoscroll();
-  lcd.blink();
+  lcd.noBlink();
   
   // reset computer  
   init_computer();
@@ -582,9 +589,34 @@ memory[38] =  0x00;
 
 // arduino loop
 void loop() {
-  lcd.clear();
-  print_message_lcd(MESSAGE_CAPTIONS);
-  getch();
+  lcd.setCursor(0, 1);
+  mode ? lcd.print(" ") : lcd.print(">");
+  lcd.print("0x");
+  print_word(current_addr);
+  mode ? lcd.print(">") : lcd.print(" ");
+  lcd.print("0x");
+  print_byte(memory[current_addr]);
+  lcd.print(" ");
+  lcd.print("NOP"); // disasm
+  
+  char key = getch();
+  switch(key) {
+    case 'A': // current_addr++
+      current_addr++;
+      if (current_addr == 0x0400) current_addr = 0;
+      break;
+    case 'B': // current_addr--
+      current_addr--;
+      if (current_addr == 0xFFFF) current_addr = 0x03FF;
+      break;
+    case 'F': // execute
+      program_counter = current_addr;
+      command_run();
+    case 'C': // ADDR mode
+      mode = 0; break;
+    case 'D': // DATA mode
+      mode = 1; break;
+  }
 
 
   /*while (true) {
