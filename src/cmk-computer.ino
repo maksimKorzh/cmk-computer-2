@@ -14,6 +14,7 @@
 #include <avr/pgmspace.h> 
 #include <LiquidCrystal.h>
 #include <Keypad.h>
+#include <EEPROM.h>
 
 /****************************************************************\    
 ================================================================
@@ -62,6 +63,8 @@ const char MESSAGE_QUESTION_MARK[] PROGMEM = {"? "};
 const char MESSAGE_INTRO_1[] PROGMEM = {" 8-bit computer "};
 const char MESSAGE_INTRO_2[] PROGMEM = {"Code Monkey King"};
 const char MESSAGE_NEW[] PROGMEM = {"NEW  "};
+const char MESSAGE_RAM_TO_EEPROM[] PROGMEM = {"  RAM > EEPROM"};
+const char MESSAGE_EEPROM_TO_RAM[] PROGMEM = {"  EEPROM > RAM"};
 const char MESSAGE_LOAD[] PROGMEM = {"LOAD FROM SERIAL"};
 const char MESSAGE_SAVE[] PROGMEM = {" SAVE TO SERIAL"};
 const char MESSAGE_CLEAR[] PROGMEM = {"CLEAR"};
@@ -546,6 +549,26 @@ void print_debug() {
   print_message_lcd(MESSAGE_CAPTIONS);
 }
 
+// RAM to EEPROM
+void ram_to_eeprom() {
+  lcd.clear();
+  print_message_lcd(MESSAGE_RAM_TO_EEPROM);
+  for (int i = 0; i < MEMORY_SIZE; i++) EEPROM.update(i, memory[i]);
+  delay(1000);
+  lcd.clear();
+  print_message_lcd(MESSAGE_CAPTIONS);
+}
+
+// EEPROM to RAM
+void eeprom_to_ram() {
+  lcd.clear();
+  print_message_lcd(MESSAGE_EEPROM_TO_RAM);
+  for (int i = 0; i < MEMORY_SIZE; i++) memory[i] = EEPROM.read(i);
+  delay(1000);
+  lcd.clear();
+  print_message_lcd(MESSAGE_CAPTIONS);
+}
+
 // arduino setup
 void setup() {
   // init serial port for debugging
@@ -588,6 +611,8 @@ void loop() {
     switch(key) {
       case 'A': command_load(); break;
       case 'B': command_save(); break;
+      case '1': eeprom_to_ram(); break;
+      case '3': ram_to_eeprom(); break;
       case '2': mode ? memory[current_addr]++ : current_addr++; break;
       case '8': mode ? memory[current_addr]-- : current_addr--; break;
       case '5': show_opcode ^= 1; break;
@@ -612,7 +637,3 @@ void loop() {
     }
   }
 }
-
-// TODO: LOAD/SAVE from EEPROM!!!
-
-
