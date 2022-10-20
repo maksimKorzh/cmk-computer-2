@@ -209,6 +209,7 @@ print('\nYOUR PROGRAM BYTES:');
 
 print('\nYOUR PROGRAM LENGTH:')
 print(len(program), 'bytes')
+
 #print('\n1. Type "FFFD" on CMK computer to load the program');
 #print('2. Open Arduino IDE => Serial Monitor')
 #print('3. Copy and paste above bytes to Arduino Serial Monitor ans click "send"');
