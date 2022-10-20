@@ -631,9 +631,11 @@ void loop() {
   
   char key = getch();
   switch(key) {
-    case 'A': // current_addr/data++
+    case 'A': command_load(); break;
+    case 'B': command_save(); break;
+    case '2': // current_addr/data++
       mode ? memory[current_addr]++ : current_addr++; break;
-    case 'B': // current_addr/data--
+    case '8': // current_addr/data--
       mode ? memory[current_addr]-- : current_addr--; break;
     case 'F': // execute
     case 'E': // single step
@@ -641,20 +643,21 @@ void loop() {
         program_counter = current_addr;
         command_run(key);
       }
-    case '0': current_addr = program_counter; break;
-    case '1': print_debug(); break;
-    case 'C': // ADDR mode
+    case 'C': current_addr = program_counter; break;
+    case 'D': print_debug(); break;
+    case '4': // ADDR mode
       mode = 0; break;
-    case 'D': // DATA mode
+    case '6': // DATA mode
       mode = 1; break;
-    default:
+    
+    /*default:
       if (!mode) {
         current_addr <<= 4;
         current_addr |= ascii_to_hex(key);
       } else if (current_addr < MEMORY_SIZE) {
         memory[current_addr] <<= 4;
         memory[current_addr] |= ascii_to_hex(key);
-      } break;
+      } break;*/
   }
 }
  
