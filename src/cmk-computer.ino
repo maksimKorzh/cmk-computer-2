@@ -62,8 +62,8 @@ const char MESSAGE_QUESTION_MARK[] PROGMEM = {"? "};
 const char MESSAGE_INTRO_1[] PROGMEM = {" 8-bit computer "};
 const char MESSAGE_INTRO_2[] PROGMEM = {"Code Monkey King"};
 const char MESSAGE_NEW[] PROGMEM = {"NEW  "};
-const char MESSAGE_LOAD[] PROGMEM = {"LOAD "};
-const char MESSAGE_SAVE[] PROGMEM = {"SAVE "};
+const char MESSAGE_LOAD[] PROGMEM = {"LOAD FROM SERIAL"};
+const char MESSAGE_SAVE[] PROGMEM = {" SAVE TO SERIAL"};
 const char MESSAGE_CLEAR[] PROGMEM = {"CLEAR"};
 const char MESSAGE_RUN[] PROGMEM = {" RUNS AT 0x"};
 const char MESSAGE_VIEW[] PROGMEM = {"VIEW: "};
@@ -191,6 +191,7 @@ bool zero_flag = 0;
 // OS variables
 uint16_t current_addr = 0;
 bool mode = 0; // ADDR = 0; DATA = 1;
+bool command_keys = 1; // use keypad for commands/digits
 
 /****************************************************************\
  ================================================================
@@ -392,6 +393,9 @@ bool execute() {
       lcd.setCursor(0, 1);
       print_byte(opcode);
       print_message_lcd(MESSAGE_QUESTION_MARK);
+      lcd.print(" at 0x");
+      print_word(program_counter-1);
+      delay(2000);
       return 0;
   } return 1;
 }
@@ -417,7 +421,7 @@ char getch() {
       else if (shield_input < 200) { delay(300); command_view(); }    // button up
       else if (shield_input < 400) { delay(300); command_clear(); }   // button down
       else if (shield_input < 600) { delay(300); command_load(); }    // button left
-      else if (shield_input < 800) { delay(300); command_run(); }     // button select
+      else if (shield_input < 800) { delay(300); command_keys ^= 1; }     // button select
     #endif
   }
 
@@ -468,7 +472,7 @@ void command_view() {
 void command_load() {
   lcd.clear();
   print_message_lcd(MESSAGE_LOAD);
-  delay(300);
+  delay(1000);
   lcd.clear();
   print_message_lcd(MESSAGE_WAITING);
   lcd.setCursor(0, 1);
@@ -477,40 +481,17 @@ void command_load() {
   lcd.clear();
   print_message_lcd(MESSAGE_LOADING);
   Serial.readBytes(memory, MEMORY_SIZE);
-  
-  // ascii to bytes       
-  for (int i = 0; i < MEMORY_SIZE; i++) {
-    memory[i] = ascii_to_hex(memory[i]);
-    if ((i % 2) == 0) memory[i] <<= 4;
-    else {
-      memory[i - 1] |= memory[i];
-      memory[i] = 0;
-    }
-  }
-  
-  // group bytes
-  for (int i = 0; i < MEMORY_SIZE; i++) {
-    if ((i % 2) == 0) {
-      if (i) {
-        memory[i - ((int)(i / 2))] = memory[i];
-        memory[i] = 0;
-      }
-    }
-  }
-
-  // verify transfered bytes
-  //Serial.println("Your program bytes loaded:");
-  //for (int i = 0; i < MEMORY_SIZE; i++) print_hex(memory[i]);
-
   print_message_lcd(MESSAGE_DONE);
-  lcd.setCursor(0, 1);
+  delay(1000);
+  lcd.clear();
+  print_message_lcd(MESSAGE_CAPTIONS);
 }
 
 // save program
 void command_save() {
   lcd.clear();
   print_message_lcd(MESSAGE_SAVE);
-  delay(300);
+  delay(1000);
   lcd.clear();
   print_message_lcd(MESSAGE_SAVING);
   
@@ -520,7 +501,9 @@ void command_save() {
   }
   
   print_message_lcd(MESSAGE_DONE_LONG);
-  lcd.setCursor(0, 1);
+  delay(1000);
+  lcd.clear();
+  print_message_lcd(MESSAGE_CAPTIONS);
 }
 
 // clear screen
@@ -630,34 +613,31 @@ void loop() {
   } else lcd.print("---- ---");
   
   char key = getch();
-  switch(key) {
-    case 'A': command_load(); break;
-    case 'B': command_save(); break;
-    case '2': // current_addr/data++
-      mode ? memory[current_addr]++ : current_addr++; break;
-    case '8': // current_addr/data--
-      mode ? memory[current_addr]-- : current_addr--; break;
-    case 'F': // execute
-    case 'E': // single step
-      if (current_addr < MEMORY_SIZE) {
-        program_counter = current_addr;
-        command_run(key);
-      }
-    case 'C': current_addr = program_counter; break;
-    case 'D': print_debug(); break;
-    case '4': // ADDR mode
-      mode = 0; break;
-    case '6': // DATA mode
-      mode = 1; break;
-    
-    /*default:
-      if (!mode) {
-        current_addr <<= 4;
-        current_addr |= ascii_to_hex(key);
-      } else if (current_addr < MEMORY_SIZE) {
-        memory[current_addr] <<= 4;
-        memory[current_addr] |= ascii_to_hex(key);
-      } break;*/
+  if (command_keys) {
+    switch(key) {
+      case 'A': command_load(); break;
+      case 'B': command_save(); break;
+      case '2': mode ? memory[current_addr]++ : current_addr++; break;
+      case '8': mode ? memory[current_addr]-- : current_addr--; break;
+      case 'F': // execute
+      case 'E': // single step
+        if (current_addr < MEMORY_SIZE) {
+          program_counter = current_addr;
+          command_run(key);
+        }
+      case 'C': current_addr = program_counter; break;
+      case 'D': print_debug(); break;
+      case '4': mode = 0; break;
+      case '6': mode = 1; break;
+    }
+  } else {
+    if (!mode) {
+      current_addr <<= 4;
+      current_addr |= ascii_to_hex(key);
+    } else if (current_addr < MEMORY_SIZE) {
+      memory[current_addr] <<= 4;
+      memory[current_addr] |= ascii_to_hex(key);
+    }
   }
 }
  
