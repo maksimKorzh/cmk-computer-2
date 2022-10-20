@@ -395,13 +395,9 @@ void execute() {
       case DLY: delay(read_byte(program_counter)); break;
       case RND: zero_flag = (register_A = random(read_byte(program_counter))); break;
       case NUM:
-        //Serial.print(read_word(), HEX);
-        //Serial.print(read_byte(read_word()), HEX);
-        //lcd.print(read_byte(read_word()));
-        lcd.print(RAM[read_word()]); break;
-
-        //Serial.print(program_counter, HEX);
-        break; // TODO: fix address
+        lcd.print(read_byte(read_word()));
+        program_counter--;
+        break;
       case INM: zero_flag = (++RAM[read_word()] == 0); break;
       case DCM: zero_flag = (--RAM[read_word()] == 0); break;
       case PSH:

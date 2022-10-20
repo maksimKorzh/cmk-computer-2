@@ -3,9 +3,6 @@ start:                ; program start
   ldi 0x00            ; load 0 to A register
   tab                 ; transfer the 0 from A to B register
   pos                 ; set cursor at (0, 0)
-  
-  inm 0x0000
-  lpc end
 
 print_caps:           ; print string loop
   lda caps            ; load byte at 'hello' label address + B register offset
@@ -16,7 +13,7 @@ print_caps:           ; print string loop
   lpc print_caps      ; jump to 'print' label
 
 print_vals:
-  num 0x1111
+  ;num 0x1111
   lpc end
 
 caps:                 ; ' ADDRESS  DATA' string
