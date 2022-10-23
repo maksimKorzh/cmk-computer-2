@@ -7,7 +7,7 @@ Programs can be entered via machine codes from the keypad or loaded via serial p
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/Rvx2P4ulBlA/0.jpg)](https://www.youtube.com/watch?v=BFnaWnjz324&list=PLLfIBXQeu3aaMjeyPxJzT34DAG6v1vQqq)
 
 # Try it online
-[![IMAGE ALT TEXT HERE](https://raw.githubusercontent.com/maksimKorzh/cmk-computer/main/Keypad_connect.png?token=AIFH42PHZAH27XM37VCJ2NDBPQDDO)](https://maksimkorzh.github.io/cmk-computer/)
+[![IMAGE ALT TEXT HERE](https://raw.githubusercontent.com/maksimKorzh/cmk-computer/main/Keypad_connect.png?token=AIFH42PHZAH27XM37VCJ2NDBPQDDO)](https://maksimkorzh.github.io/cmk-computer-2/)
 
 
 # Memory
@@ -49,7 +49,7 @@ Programs can be entered via machine codes from the keypad or loaded via serial p
     | KEYPAD E  | Execute a single instruction             |
     | KEYPAD F  | Execute/Pause program                    |
     |------------------------------------------------------|
-    | KEYPAD 0  | Reset RAM                                |
+    | KEYPAD 0  | Reset RAM and CPU registers              |
     |------------------------------------------------------|
     | KEYPAD 7  | Not used in command mode                 |
     | KEYPAD 9  | Not used in command mode                 |
