@@ -185,7 +185,7 @@ Keypad keypad = Keypad(makeKeymap(keymap), row_pins, col_pins, num_rows, num_col
 uint8_t  memory[MEMORY_SIZE];
 
 // pre-load program
-const uint8_t PROGLEN = 1024;
+const uint16_t PROGLEN = 496;
 const uint8_t PROGRAM[] PROGMEM = { // Chrome Dino Game (run at 0x0000)
   0x08, 0x00, 0x72, 0x00, 0x20, 0x41, 0x52, 0x45,
   0x20, 0x59, 0x4f, 0x55, 0x20, 0x52, 0x45, 0x41,
@@ -664,10 +664,8 @@ void setup() {
   init_computer();
   
   // pre-load program to RAM
-  for (int i = 0; i < PROGLEN; i++) {
+  for (int i = 0; i < PROGLEN; i++)
     memory[i] = pgm_read_byte_near(PROGRAM + i);
-    Serial.println(memory[i], HEX);
-  }
 }
 
 // arduino loop
