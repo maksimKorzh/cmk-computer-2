@@ -50,13 +50,6 @@
 // messages
 const char MESSAGE_CAPTIONS[] PROGMEM = {"ADDRESS DATA"};
 const char MESSAGE_ZERO[] PROGMEM = {"0"};
-
-/*const char MESSAGE_REGISTER_A_DEBUG[] PROGMEM = {"Register A: 0x"};
-const char MESSAGE_REGISTER_B_DEBUG[] PROGMEM = {"Register B: 0x"};
-const char MESSAGE_REGISTER_PC_DEBUG[] PROGMEM = {"Program Counter: 0x"};
-const char MESSAGE_REGISTER_SP_DEBUG[] PROGMEM = {"Stack pointer: 0x"};
-const char MESSAGE_REGISTER_ZF_DEBUG[] PROGMEM = {"Zero Flag: 0x"};*/
-
 const char MESSAGE_DEBUG[] PROGMEM = {" A  B  PC  SP ZF"};
 const char MESSAGE_UNKNOWN_OPCODE[] PROGMEM = {"Unknown opcode:"};
 const char MESSAGE_QUESTION_MARK[] PROGMEM = {"? "};
@@ -264,6 +257,7 @@ bool mode = 1; // ADDR = 0; DATA = 1;
 bool command_keys = 0; // use keypad for commands/digits
 bool show_opcode = 0;  // show opcode flag
 
+
 /****************************************************************\
  ================================================================
 
@@ -435,10 +429,12 @@ bool execute() { //Serial.print(program_counter, HEX); Serial.print("\n");
     case PSH:
       memory[stack_pointer--] = register_A;
       memory[stack_pointer--] = register_B;
+      if (stack_pointer == 0x02FF) stack_pointer = 0x03FF;
       break;
     case POP:
       register_B = memory[++stack_pointer];
       register_A = memory[++stack_pointer];
+      if (stack_pointer == 0x03FF) stack_pointer = 0x02FF;
       break;
     case SBR:
       memory[stack_pointer--] = (uint8_t)(program_counter & 0x00ff) + 2;
@@ -716,6 +712,7 @@ void loop() {
       case 'D': print_debug(); break;
       case '4': mode = 0; break;
       case '6': mode = 1; break;
+      case '0': reset_cpu(); reset_memory(); break;
     }
   } else {
     if (!mode) {

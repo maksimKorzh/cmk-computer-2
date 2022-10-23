@@ -11,25 +11,57 @@ Programs can be entered via machine codes from the keypad or loaded via serial p
 
 
 # Memory
- - 1500 bytes of RAM
- - stack (stack pointer points to the last byte in RAM and growth downwards)
- - first 750 bytes are used to store program instructions and variables
- - last 750 bytes are shared between program variables and stack
- - next 7 bytes after RAM hold registers' state,<br>
-   however manipulating them directly is not recommended<br>
-   unless you know exactly what are you doing)
+ - 1024 bytes of RAM (0x0000 - 0x03FF)
+ - 1024 bytes of EEPROM (bytes can be transfered between RAM and EEPROM)
+ -  256 bytes of STACK (0x03FF - 0x0300, wraps around in both directions)
 
-# Control commands
-    FFFD  (LCD shield 'left' button)    load program via serial port
-    FFFF  (LCD shield 'select' button)  run program
-    FFFC  (LCD shield 'up' button)      show 4 byte in memory at entered address
-    FFFA  (LCD shield 'down' button)    clear LCD screen
-    FFFB  (LCD shield 'reset' button)   software/hardware reset
-    FFFE  (LCD shield 'right' button)   save program via serial port (1k memory dump)
+# LCD Controls
+    LCD shield   'left'    address mode
+    LCD shield  'right'    data mode
+    LCD shield     'up'    increase address by one
+    LCD shield   'down'    decrease address by one
+    LCD shield 'select'    switch keypad mode (DIGIT/COMMAND)
+    LCD shield  'reset'    hardware reset
+
+# KEYPAD Controls
+    Pressing a key on the keypad would result in
+    altering address/data (depending on mode) if
+    keypad is in the DIGIT mode and runs certain
+    commands in COMMAND mode.
+    
+    |------------------------------------------------------|
+    | Button #  |              Command mode                |
+    |------------------------------------------------------|
+    | KEYPAD 1  | Copy 1024 bytes from EEPROM to RAM       |
+    | KEYPAD 3  | Copy 1024 bytes from RAM to EEPROM       |
+    | KEYPAD A  | Load bytes into RAM from serial port     |
+    | KEYPAD B  | Save bytes from RAM into serial port     |
+    |------------------------------------------------------|
+    | KEYPAD 2  | Increment ADDRESS/DATA depending on mode |
+    | KEYPAD 8  | Decrement ADDRESS/DATA depending on mode |
+    | KEYPAD 4  | Switch to ADDRESS mode                   |
+    | KEYPAD 6  | Switch to DATA mode                      |
+    |------------------------------------------------------|
+    | KEYPAD 5  | Switch between OPCODE/CHARACTER modes    |
+    |------------------------------------------------------|
+    | KEYPAD C  | Set current ADDRESS to Program counter   |
+    | KEYPAD D  | Print DEBUG info                         |
+    | KEYPAD E  | Execute a single instruction             |
+    | KEYPAD F  | Execute/Pause program                    |
+    |------------------------------------------------------|
+    | KEYPAD 0  | Reset RAM                                |
+    |------------------------------------------------------|
+    | KEYPAD 7  | Not used in command mode                 |
+    | KEYPAD 9  | Not used in command mode                 |
+    |------------------------------------------------------|
+    
+    F key is used to pause the program execution
+    during runtime regardless of modes. Please
+    do not involve it withing your programs.
 
 # Operation codes / Assembly mnemonics
     ----------------------------------------------------------
-     hex  asm  arg   description
+     HEX  ASM  ARG   Description
     ----------------------------------------------------------
     0x00  NOP        no operation, resets program counter
     0x01  LDI  byte  load immediate data to A register
