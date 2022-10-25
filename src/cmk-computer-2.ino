@@ -569,8 +569,10 @@ void command_save() {
   print_message_lcd(MESSAGE_SAVING);
   
   for (int i = 0; i < MEMORY_SIZE; i++) {
+    Serial.print("0x");
     if ( memory[i] < 0x10) print_message_serial(MESSAGE_ZERO);
     Serial.print(memory[i], HEX);
+    if (i < MEMORY_SIZE - 1) Serial.print(", ");
   }
   
   print_message_lcd(MESSAGE_DONE_LONG);
