@@ -194,17 +194,17 @@ if (len(program) > 1500):
     print('Your program exceeds limit by', len(program) - 1500, 'bytes!');
     sys.exit();
 
-print('\nYOUR PROGRAM BYTES:');
-[print('memory[' + str(i) + '] = ', f'{program[i]:#0{4}x}' + ';') for i in range(len(program))]
+#print('\nYOUR PROGRAM BYTES:');
+#[print('memory[' + str(i) + '] = ', f'{program[i]:#0{4}x}' + ';') for i in range(len(program))]
 
-print('\nYOUR PROGRAM LABELS:')
+print('YOUR PROGRAM LABELS:')
 print(json.dumps(labels, indent=2))
+print('\nYOUR PROGRAM LENGTH:', len(program), 'bytes')
+print('YOUR PROGRAM BYTES ARE AVAILABLE IN FILE: "' + sys.argv[1] + '"');
 
-print('\nYOUR PROGRAM BYTES:');
-print(', '.join([f'{i:#0{4}x}' for i in  program]))
+with open(sys.argv[1].replace('.asm', '.txt'), "w") as f:
+    f.write(', '.join([f'{i:#0{4}x}' for i in  program]))
 
-print('\nYOUR PROGRAM LENGTH:')
-print(len(program), 'bytes')
 
 #print('\n1. Type "FFFD" on CMK computer to load the program');
 #print('2. Open Arduino IDE => Serial Monitor')

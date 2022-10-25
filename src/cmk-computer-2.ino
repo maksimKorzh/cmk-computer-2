@@ -116,7 +116,6 @@ uint8_t keymap[num_rows][num_cols] = {
 byte row_pins[num_rows] = {12, 11, 3, 2};     // Rows 0 to 3
 byte col_pins[num_cols] = {A4, A3, A2, A1};  // Columns 0 to 3
 
-
 // init kepad
 Keypad keypad = Keypad(makeKeymap(keymap), row_pins, col_pins, num_rows, num_cols);
 
@@ -253,7 +252,7 @@ bool zero_flag = 0;
 
 // OS variables
 uint16_t current_addr = 0;
-bool mode = 1; // ADDR = 0; DATA = 1;
+bool mode = 0; // ADDR = 0; DATA = 1;
 bool command_keys = 0; // use keypad for commands/digits
 bool show_opcode = 0;  // show opcode flag
 
@@ -535,21 +534,11 @@ void command_run(char key) {
   lcd.setCursor(3, 2);
   delay(1000);
   lcd.clear();
-  //bool keypad_mode = command_keys;
-  //command_keys = 0;
   if (key == 'F') while(execute());
   else execute();
-  //command_keys = keypad_mode;
   current_addr = program_counter;
   lcd.clear();
   print_message_lcd(MESSAGE_CAPTIONS);
-}
-
-// view memory dump
-void command_view() {
-  lcd.clear();
-  print_message_lcd(MESSAGE_VIEW);
-  memory_dump(encode_word());
 }
 
 // load program
@@ -588,23 +577,6 @@ void command_save() {
   delay(1000);
   lcd.clear();
   print_message_lcd(MESSAGE_CAPTIONS);
-}
-
-// clear screen
-void command_clear() {
-  lcd.clear();
-  print_message_lcd(MESSAGE_CLEAR);
-  delay(300);
-  lcd.clear();
-}
-
-// software reset
-void command_new() {
-  lcd.clear();
-  print_message_lcd(MESSAGE_NEW);
-  lcd.setCursor(3, 2);
-  delay(300);
-  init_computer();
 }
 
 // print debug
@@ -712,7 +684,15 @@ void loop() {
       case 'D': print_debug(); break;
       case '4': mode = 0; break;
       case '6': mode = 1; break;
-      case '0': reset_cpu(); reset_memory(); break;
+      case '0':
+        reset_cpu();
+        reset_memory();
+        
+        // reset user defined characters on the LCD
+        for (int i = 0; i < 7; i++) lcd.createChar(i, memory);
+        lcd.begin(16, 2);
+        print_message_lcd(MESSAGE_CAPTIONS);
+        break;
     }
   } else {
     if (!mode) {
