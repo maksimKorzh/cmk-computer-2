@@ -428,21 +428,19 @@ bool execute() { //Serial.print(program_counter, HEX); Serial.print("\n");
     case PSH:
       memory[stack_pointer--] = register_A;
       memory[stack_pointer--] = register_B;
-      if (stack_pointer == 0x02FF) stack_pointer = 0x03FF;
       break;
     case POP:
       register_B = memory[++stack_pointer];
       register_A = memory[++stack_pointer];
-      if (stack_pointer == 0x03FF) stack_pointer = 0x02FF;
       break;
     case SBR:
       memory[stack_pointer--] = (uint8_t)(program_counter & 0x00ff) + 2;
-      memory[stack_pointer--] = (uint8_t)(program_counter >> 4);
+      memory[stack_pointer--] = (uint8_t)(program_counter >> 8);
       program_counter = read_word();
       break;
     case RET:
       program_counter = 0;
-      program_counter <<= memory[++stack_pointer];
+      program_counter = memory[++stack_pointer] << 8;
       program_counter |= memory[++stack_pointer];
       break;
     case UDG:

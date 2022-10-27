@@ -13,7 +13,7 @@ Programs can be entered via machine codes from the keypad or loaded via serial p
 # Memory
  - 1024 bytes of RAM (0x0000 - 0x03FF)
  - 1024 bytes of EEPROM (bytes can be transfered between RAM and EEPROM)
- -  256 bytes of STACK (0x03FF - 0x0300, wraps around in both directions)
+ - STACK starts at 0x03FF, growth downwards and does not wrap around
 
 # LCD Controls
     LCD shield   'left'    address mode
