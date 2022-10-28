@@ -422,7 +422,11 @@ bool execute() { //Serial.print(program_counter, HEX); Serial.print("\n");
     case POS: lcd.setCursor(register_A, register_B); break;
     case DLY: delay(read_byte()); break;
     case RND: zero_flag = (register_A = random(read_byte())); break;
-    case NUM: lcd.print(memory[read_word()]); break;
+    case NUM:
+      for (int i = 0; i < register_B; i++) lcd.print("0");
+      if (register_A != 0) lcd.print(memory[read_word()]);
+      else lcd.print(memory[read_word()], HEX);
+      break;
     case INM: zero_flag = (++memory[read_word()] == 0); break;
     case DCM: zero_flag = (--memory[read_word()] == 0); break;
     case PSH:
