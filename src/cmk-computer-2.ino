@@ -44,7 +44,7 @@
 ================================================================
 \****************************************************************/
 
-// uncomment to rotate keypad CCW, enable LCD shield buttons
+// uncomment to rotate keypad CCW
 //#define CMK_HARDWARE
 
 // messages
@@ -424,14 +424,17 @@ bool execute() { //Serial.print(program_counter, HEX); Serial.print("\n");
     case RND: zero_flag = (register_A = random(read_byte())); break;
     case NUM: {
       int num = memory[read_word()];
-      if (num >= 1) {       
+      if (num == 0) {
+        for (int i = 0; i < register_B-1; i++) lcd.print("0");
+      } 
+      else {       
         int len = 0;
         int x = num;
           while (x >= 1) {
             x /= 10;
             len += 1;
           }
-        for (int i = 0; i < 3-len; i++)lcd.print("0");
+        for (int i = 0; i < register_B-len; i++) lcd.print("0");
       } 
       if (register_A != 0) lcd.print(num);
       else lcd.print(num, HEX);
