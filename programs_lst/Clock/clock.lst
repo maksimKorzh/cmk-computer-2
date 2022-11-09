@@ -1,0 +1,87 @@
+===============================================================================
+ -----------------------------------------------------------------------------
+                               Digital Clock
+          
+                                    by
+       
+                             Code Monkey King
+ -----------------------------------------------------------------------------
+===============================================================================
++---------+----------------+---------------+----------------------------------+
+| ADDRESS |     OPCODES    |    ASSEMBLY   |             COMMENTS             |
+|---------+----------------+---------------+----------------------------------|
+| 0x0100: | 0x1F 0xFA      | DLY 0xFA      | Delay 250 ms                     |
+| (DELAY) | 0x1F 0xFA      | DLY 0xFA      | Delay 250 ms                     |
+|         | 0x1F 0xFA      | DLY 0xFA      | Delay 250 ms                     |
+|         | 0x1F 0xFA      | DLY 0xFA      | Delay 250 ms                     |
+|         | 0x24           | RET           | Return from subroutine           |
+|---------+----------------+---------------+----------------------------------|
+| 0x011B: | 0x01 0x01      | LDI 0x01      | Load 0x01 to A register          |
+| (SETCR) | 0x03           | TAB           | Transfer 0x01 to B register      |
+|         | 0x01 0x04      | LDI 0x04      | Load 0x04 to A register          |
+|         | 0x1E           | POS           | Set cursor at COL 5, ROW 2       |
+|         | 0x24           | RET           | Return from subroutine           |
+|---------+----------------+---------------+----------------------------------|
+| 0x0122: | 0x01 0x3A      | LDI 0x3A      | Load ":" to A register           |
+| (PRCLN) | 0x0F           | OUT           | Print ":" to LCD                 |
+|         | 0x24           | RET           | Return from subroutine           |
+|---------+----------------+---------------+----------------------------------|
+| 0x0126: | 0x23 0x01 0x1B | SBR 0x01 0x1B | Call SETCR routine at 0x011B     |
+| (PRCLK) | 0x01 0x02      | LDI 0x02      | Load 0x02 to A register          |
+|         | 0x03           | TAB           | Transfer 0x02 to B register      |
+|         | 0x25 0x00 0x00 | NUM 0x00 0x00 | Print HOUR with leading zero     |
+|         | 0x23 0x01 0x22 | SBR 0x01 0x22 | Call PRCLN at 0x0122             |
+|         | 0x25 0x00 0x01 | NUM 0x00 0x01 | Print MINUTE with leading zero   |
+|         | 0x23 0x01 0x22 | SBR 0x01 0x22 | Call PRCLN at 0x0122             |
+|         | 0x25 0x00 0x02 | NUM 0x00 0x02 | Print SECOND with leading zero   |
+|         | 0x24           | RET           | Return from subroutine           |
+|---------+----------------+---------------+----------------------------------|
+| 0x013C: | 0x02 0x00 0x02 | LDA 0x00 0x02 | Load SECOND to A register        |
+| (UPDSC) | 0x0B 0x3B      | CMP 0x3B      | SECOND equals to 59 ?            |
+|         | 0x0C 0x01 0x48 | JMP 0x01 0x48 | If so jump to UPDMN at 0x0148    |
+|         | 0x26 0x00 0x02 | INM 0x00 0x02 | Otherwise increment SECOND by 1  |
+|         | 0x24           | RET           | Return from subroutine           |
+|---------+----------------+---------------+----------------------------------|
+| 0x0148: | 0x01 0x00      | LDI 0x00      | Load 0x00 to A register          |
+| (UPDMN) | 0x06 0x00 0x02 | STA 0x00 0x02 | Set SECOND to 0                  |
+|         | 0x02 0x00 0x01 | LDA 0x00 0x01 | Load MINUTE to A register        |
+|         | 0x0B 0x3B      | CMP 0x3B      | MINUTE equals to 59 ?            |
+|         | 0x0C 0x01 0x59 | JMP 0x01 0x59 | If so jump to UPDHR at 0x0159    |
+|         | 0x26 0x00 0x01 | INM 0x00 0x01 | Otherwise increment MINUTE by 1  |
+|         | 0x24           | RET           | Return from subroutine           |
+|---------+----------------+---------------+----------------------------------|
+| 0x0159: | 0x01 0x00      | LDI 0x00      | Load 0x00 to A register          |
+| (UPDHR) | 0x06 0x00 0x01 | STA 0x00 0x01 | Set MINUTE to 0                  |
+|         | 0x02 0x00 0x00 | LDA 0x00 0x00 | Load HOUR to A register          |
+|         | 0x0B 0x17      | CMP 0x17      | HOUR equals 23 ?                 |
+|         | 0x0C 0x01 0x6A | JMP 0x01 0x6A | If so jump to RSTHR at 0x016A    |
+|         | 0x26 0x00 0x00 | INM 0x00 0x00 | Otherwise increment HOUR by 1    |
+|         | 0x24           | RET           | Return from subroutine           |
+|---------+----------------+---------------+----------------------------------|
+| 0x016A: | 0x01 0x00      | LDI 0x00      | Load 0x00 to A register          |
+| (RSTHR) | 0x06 0x00 0x00 | STA 0x00 0x00 | Set HOUR to 0                    |
+|         | 0x24           | RET           | Return from subroutine           |
+|---------+----------------+---------------+----------------------------------|
+| 0x0200: | 0x01 0x00      | LDI 0x00      | Load 0x00 to A register          |
+| (START) | 0x03           | TAB           | Transfer 0x00 to B register      |
+|         | 0x23 0x01 0x3C | SBR 0x01 0x3C | Call UPDSC at 0x013C             |
+|         | 0x23 0x01 0x26 | SBR 0x01 0x26 | Call PRCLK at 0x0126             |
+|         | 0x23 0x01 0x00 | SBR 0x01 0x00 | Call DELAY at 0x0100             |
+|         | 0x07           | RCH           | Read keypad non-blocking         |
+|         | 0x08 0x02 0x00 | LPC 0x02 0x00 | Jump to START at 0x0000          |
++---------+----------------+---------------+----------------------------------+
+ ====================
+| VARIABLES |  ADDR  |
+|===========|========|
+| HOUR      | 0x0000 |
+| MINUTE    | 0x0001 |
+| SECOND    | 0x0002 |
+ ====================
+
+
+
+
+
+
+
+
